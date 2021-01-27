@@ -105,12 +105,12 @@
             }
         }
 
-        public Guid RunTask(JObject jsonObject, Guid? taskId = null)
+        public Guid RunTask(string jobJson, Guid? taskId = null)
         {
             try
             {
                 var jobTaskId = Generate(taskId);
-                var jsonContent = new StringContent(jsonObject.ToString(), Encoding.UTF8, "application/json");
+                var jsonContent = new StringContent(jobJson, Encoding.UTF8, "application/json");
                 var result = Client.PostAsync($"/task/{jobTaskId}", jsonContent).Result;
                 if (result.IsSuccessStatusCode)
                 {
