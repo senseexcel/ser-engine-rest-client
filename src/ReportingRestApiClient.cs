@@ -87,7 +87,7 @@
             }
         }
 
-        public bool DeleteFolder(Guid? folderId = null)
+        public bool Delete(Guid? folderId = null)
         {
             try
             {
