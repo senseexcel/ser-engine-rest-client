@@ -4,6 +4,10 @@
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Ser.Engine.Rest.Client</RootNamespace>
     <AssemblyName>SerEngineRestClient</AssemblyName>
+    <PackageId>Ser.Engine.Rest.Client</PackageId>
+    <Authors>akquinet finance &amp; controlling GmbH</Authors>
+    <Company>akquinet finance &amp; controlling GmbH</Company>
+    <Copyright>Copyright (c) $([System.DateTime]::Today.ToString('yyyy'))</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
