@@ -34,29 +34,42 @@
         }
         #endregion
 
+        #region Private Methods
         private static Guid Generate(Guid? value)
         {
             if (value.HasValue)
                 return value.Value;
             return Guid.NewGuid();
         }
+        #endregion
 
-
-        public Guid Upload(string fullpath, Guid? fileId = null, string filename = null)
+        #region Public Methods
+        public Guid UploadFile(string fullpath, Guid? fileId = null, string filename = null)
         {
             try
             {
-                var uploadId = Generate(fileId);
-
                 var uploadFilename = Path.GetFileName(fullpath);
                 if (!String.IsNullOrEmpty(filename))
                     uploadFilename = filename;
 
                 var data = File.ReadAllBytes(fullpath);
+                return UploadData(data, uploadFilename, fileId);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("The data file to rest api failed.", ex);
+            }
+        }
+
+        public Guid UploadData(byte[] data, string filename, Guid? fileId = null)
+        {
+            try
+            {
+                var uploadId = Generate(fileId);
                 var multiPartContent = new MultipartFormDataContent();
                 var byteArrayContent = new ByteArrayContent(data);
                 byteArrayContent.Headers.Add("Content-Type", "application/octet-stream");
-                multiPartContent.Add(byteArrayContent, "file", uploadFilename);
+                multiPartContent.Add(byteArrayContent, "file", filename);
 
                 var result = Client.PostAsync($"/upload/{uploadId}", multiPartContent).Result;
                 if (result.IsSuccessStatusCode)
@@ -68,11 +81,11 @@
             }
             catch (Exception ex)
             {
-                throw new Exception("The file upload to rest api failed.", ex);
+                throw new Exception("The data upload to rest api failed.", ex);
             }
         }
 
-        public byte[] Download(Guid folderId)
+        public byte[] DownloadData(Guid folderId)
         {
             try
             {
@@ -175,5 +188,6 @@
                 throw new Exception("The health status request to rest api failed.", ex);
             }
         }
+        #endregion
     }
 }
