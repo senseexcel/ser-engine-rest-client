@@ -85,11 +85,15 @@
             }
         }
 
-        public byte[] DownloadData(Guid folderId)
+        public byte[] DownloadData(Guid folderId, string filename = null)
         {
             try
             {
-                var result = Client.GetAsync($"/download/{folderId}").Result;
+                var requestUri = $"/download/{folderId}";
+                if (!String.IsNullOrEmpty(filename))
+                    requestUri += $"?filename={Uri.EscapeDataString(filename)}";
+
+                var result = Client.GetAsync(requestUri).Result;
                 if (result.IsSuccessStatusCode)
                     return result.Content.ReadAsByteArrayAsync().Result;
                 throw new Exception(result.ToString());
@@ -156,13 +160,17 @@
             }
         }
 
-        public JArray GetTasks(Guid? taskId = null)
+        public JArray GetTasks(string taskStatus = null, Guid? taskId = null)
         {
             try
             {
                 var requestUri = $"/task";
                 if (taskId.HasValue)
                     requestUri = $"/task/{taskId}";
+
+                if (!String.IsNullOrEmpty(taskStatus))
+                    requestUri += $"?taskstatus={Uri.EscapeDataString(taskStatus)}";
+
                 var result = Client.GetAsync(requestUri).Result;
                 if (result.IsSuccessStatusCode)
                 {
