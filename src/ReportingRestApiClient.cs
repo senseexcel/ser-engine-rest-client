@@ -160,7 +160,7 @@
             }
         }
 
-        public JArray GetTasks(string taskStatus = null, Guid? taskId = null)
+        public JArray GetTasks(Guid? taskId = null, string taskStatus = null)
         {
             try
             {
