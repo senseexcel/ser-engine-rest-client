@@ -165,7 +165,11 @@
                     requestUri = $"/task/{taskId}";
                 var result = Client.GetAsync(requestUri).Result;
                 if (result.IsSuccessStatusCode)
-                    return JArray.Parse(result.Content.ReadAsStringAsync().Result);
+                {
+                    var jsonContent = result.Content.ReadAsStringAsync().Result;
+                    var msJson = System.Text.Json.JsonSerializer.Deserialize<string>(jsonContent);
+                    return JArray.Parse(msJson);
+                }
                 throw new Exception(result.ToString());
             }
             catch (Exception ex)
