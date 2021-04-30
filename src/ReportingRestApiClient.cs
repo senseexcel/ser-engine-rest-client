@@ -178,6 +178,24 @@
             }
         }
 
+        public string GetAllStatus()
+        {
+            try
+            {
+                var requestUri = $"/status/all";
+                var result = Client.GetAsync(requestUri).Result;
+                if (result.IsSuccessStatusCode)
+                {
+                    return result.Content.ReadAsStringAsync().Result;
+                }
+                throw new Exception(result.ToString());
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("The task get request from rest api failed.", ex);
+            }
+        }
+
         public string HealthStatus()
         {
             try
