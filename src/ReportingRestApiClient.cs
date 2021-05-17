@@ -160,23 +160,33 @@
             }
         }
 
-        public JArray GetTasks(Guid? taskId = null, string taskStatus = null)
+        public string GetStatus(Guid taskId)
         {
             try
             {
-                var requestUri = $"/task";
-                if (taskId.HasValue)
-                    requestUri = $"/task/{taskId}";
-
-                if (!String.IsNullOrEmpty(taskStatus))
-                    requestUri += $"?taskstatus={Uri.EscapeDataString(taskStatus)}";
-
+                var requestUri = $"/status/{taskId}";
                 var result = Client.GetAsync(requestUri).Result;
                 if (result.IsSuccessStatusCode)
                 {
-                    var jsonContent = result.Content.ReadAsStringAsync().Result;
-                    var msJson = System.Text.Json.JsonSerializer.Deserialize<string>(jsonContent);
-                    return JArray.Parse(msJson);
+                    return result.Content.ReadAsStringAsync().Result;
+                }
+                throw new Exception(result.ToString());
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("The task get request from rest api failed.", ex);
+            }
+        }
+
+        public string GetAllStatus()
+        {
+            try
+            {
+                var requestUri = $"/status/all";
+                var result = Client.GetAsync(requestUri).Result;
+                if (result.IsSuccessStatusCode)
+                {
+                    return result.Content.ReadAsStringAsync().Result;
                 }
                 throw new Exception(result.ToString());
             }
