@@ -7,6 +7,8 @@
     using System.Linq;
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Net.Security;
+    using System.Security.Cryptography.X509Certificates;
     using System.Text;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
@@ -26,7 +28,12 @@
             if (timeout > 300)
                 timeout = 300;
 
-            Client = new HttpClient()
+            var clientHandler = new HttpClientHandler()
+            {
+                ServerCertificateCustomValidationCallback = ServerCertificateCustomValidation
+            };
+
+            Client = new HttpClient(clientHandler)
             {
                 BaseAddress = baseAddress,
                 Timeout = TimeSpan.FromSeconds(timeout)
@@ -40,6 +47,22 @@
             if (value.HasValue)
                 return value.Value;
             return Guid.NewGuid();
+        }
+
+        private static bool ServerCertificateCustomValidation(HttpRequestMessage requestMessage, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors sslErrors)
+        {
+            // It is possible inpect the certificate provided by server
+            Console.WriteLine($"Requested URI: {requestMessage.RequestUri}");
+            Console.WriteLine($"Effective date: {certificate.GetEffectiveDateString()}");
+            Console.WriteLine($"Exp date: {certificate.GetExpirationDateString()}");
+            Console.WriteLine($"Issuer: {certificate.Issuer}");
+            Console.WriteLine($"Subject: {certificate.Subject}");
+
+            // Based on the custom logic it is possible to decide whether the client considers certificate valid or not
+            Console.WriteLine($"Errors: {sslErrors}");
+            //return sslErrors == SslPolicyErrors.None;
+
+            return true;
         }
         #endregion
 
