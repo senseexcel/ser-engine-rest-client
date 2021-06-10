@@ -51,16 +51,8 @@
 
         private static bool ServerCertificateCustomValidation(HttpRequestMessage requestMessage, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors sslErrors)
         {
-            // It is possible inpect the certificate provided by server
             Console.WriteLine($"Requested URI: {requestMessage.RequestUri}");
-            Console.WriteLine($"Effective date: {certificate.GetEffectiveDateString()}");
-            Console.WriteLine($"Exp date: {certificate.GetExpirationDateString()}");
-            Console.WriteLine($"Issuer: {certificate.Issuer}");
-            Console.WriteLine($"Subject: {certificate.Subject}");
-
-            // Based on the custom logic it is possible to decide whether the client considers certificate valid or not
-            Console.WriteLine($"Errors: {sslErrors}");
-            //return sslErrors == SslPolicyErrors.None;
+            Console.WriteLine($"State: {sslErrors}");
 
             return true;
         }
