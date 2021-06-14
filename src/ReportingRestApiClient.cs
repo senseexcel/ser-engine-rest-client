@@ -77,10 +77,14 @@
                 if(thumbprint.Key.Host.ToLowerInvariant() == requestMessage.RequestUri.Host.ToLowerInvariant())
                 {
                     if (thumbprint.Value.ToLowerInvariant() == certificate.Thumbprint.ToLowerInvariant())
+                    {
+                        logger.Info("The ssl thumbprint was found successfully..");
                         return true;
+                    }
                 }
             }
 
+            logger.Warn("The ssl validation was not successful...");
             return false;
         }
         #endregion
