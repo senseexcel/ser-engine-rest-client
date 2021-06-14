@@ -1,6 +1,6 @@
 ﻿namespace Ser.Engine.Rest.Client
 {
-    #region usings
+    #region Usings
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -12,12 +12,19 @@
     using System.Text;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using NLog;
     #endregion
 
     public class ReportingRestApiClient
     {
+        #region Logger
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        #endregion
+
         #region Properties
         private HttpClient Client { get; set; }
+        public bool SslVerify { get; set; } = true;
+        public Dictionary<Uri, string> SslThumbprints { get; private set; } = new Dictionary<Uri, string>();
         #endregion
 
         #region Constructor
@@ -49,12 +56,32 @@
             return Guid.NewGuid();
         }
 
-        private static bool ServerCertificateCustomValidation(HttpRequestMessage requestMessage, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors sslErrors)
+        private bool ServerCertificateCustomValidation(HttpRequestMessage requestMessage, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors sslErrors)
         {
-            Console.WriteLine($"Requested URI: {requestMessage.RequestUri}");
-            Console.WriteLine($"State: {sslErrors}");
+            logger.Debug("The server called ssl certificate validation...");
 
-            return true;
+            if (sslErrors == SslPolicyErrors.None)
+            {
+                logger.Debug("No SSL policy errors.");
+                return true;
+            }
+
+            if (!SslVerify)
+            {
+                logger.Info("Use property 'SslVerify' with value 'false'.");
+                return true;
+            }
+
+            foreach (var thumbprint in SslThumbprints)
+            {
+                if(thumbprint.Key.Host.ToLowerInvariant() == requestMessage.RequestUri.Host.ToLowerInvariant())
+                {
+                    if (thumbprint.Value.ToLowerInvariant() == certificate.Thumbprint.ToLowerInvariant())
+                        return true;
+                }
+            }
+
+            return false;
         }
         #endregion
 
