@@ -1,21 +1,30 @@
 ﻿namespace Ser.Engine.Rest.Client
 {
-    #region usings
+    #region Usings
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Net.Security;
+    using System.Security.Cryptography.X509Certificates;
     using System.Text;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using NLog;
     #endregion
 
     public class ReportingRestApiClient
     {
+        #region Logger
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        #endregion
+
         #region Properties
         private HttpClient Client { get; set; }
+        public bool SslVerify { get; set; } = true;
+        public Dictionary<Uri, string> SslThumbprints { get; private set; } = new Dictionary<Uri, string>();
         #endregion
 
         #region Constructor
@@ -26,7 +35,12 @@
             if (timeout > 300)
                 timeout = 300;
 
-            Client = new HttpClient()
+            var clientHandler = new HttpClientHandler()
+            {
+                ServerCertificateCustomValidationCallback = ServerCertificateCustomValidation
+            };
+
+            Client = new HttpClient(clientHandler)
             {
                 BaseAddress = baseAddress,
                 Timeout = TimeSpan.FromSeconds(timeout)
@@ -40,6 +54,38 @@
             if (value.HasValue)
                 return value.Value;
             return Guid.NewGuid();
+        }
+
+        private bool ServerCertificateCustomValidation(HttpRequestMessage requestMessage, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors sslErrors)
+        {
+            logger.Debug("The server called ssl certificate validation...");
+
+            if (sslErrors == SslPolicyErrors.None)
+            {
+                logger.Debug("No SSL policy errors.");
+                return true;
+            }
+
+            if (!SslVerify)
+            {
+                logger.Info("Use property 'SslVerify' with value 'false'.");
+                return true;
+            }
+
+            foreach (var thumbprint in SslThumbprints)
+            {
+                if(thumbprint.Key.Host.ToLowerInvariant() == requestMessage.RequestUri.Host.ToLowerInvariant())
+                {
+                    if (thumbprint.Value.ToLowerInvariant() == certificate.Thumbprint.ToLowerInvariant())
+                    {
+                        logger.Info("The ssl thumbprint was found successfully..");
+                        return true;
+                    }
+                }
+            }
+
+            logger.Warn("The ssl validation was not successful...");
+            return false;
         }
         #endregion
 
